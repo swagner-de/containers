@@ -32,4 +32,4 @@ ENV PYTHONPATH="/opt/venv/lib/python3.11/site-packages"
 WORKDIR /config
 VOLUME ["/config"]
 
-ENTRYPOINT ["python", "-m", "carconnectivity.carconnectivity_base"]
+ENTRYPOINT ["python", "-c", "from carconnectivity.carconnectivity_base import main; main()"]
