@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker buildx *)",
+      "Bash(go test *)",
+      "Bash(go mod *)",
+      "Bash(go build *)",
+      "Bash(gh repo *)",
+      "Bash(gh pr *)",
+      "Bash(gh workflow *)",
+      "Bash(git *)"
+    ]
+  }
+}

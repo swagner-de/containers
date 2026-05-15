@@ -1,0 +1,30 @@
+---
+name: App Tests
+description: Run Go integration tests for an app
+
+inputs:
+  app:
+    description: App Name
+    required: true
+  image:
+    description: Image to test
+    required: true
+  token:
+    description: GitHub Token
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Go
+      uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+      with:
+        go-version-file: go.mod
+
+    - name: Run Tests
+      shell: bash
+      env:
+        APP: ${{ inputs.app }}
+        TEST_IMAGE: ${{ inputs.image }}
+      run: |-
+        go test -v ./apps/${APP}/...

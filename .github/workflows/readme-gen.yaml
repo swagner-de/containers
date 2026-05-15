@@ -1,0 +1,123 @@
+---
+name: README Generation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - apps/**
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - name: Generate READMEs
+        run: |
+          # Generate per-app READMEs
+          for app_dir in apps/*/; do
+            [[ ! -f "$app_dir/docker-bake.hcl" ]] && continue
+            app_name=$(basename "$app_dir")
+
+            VERSION=$(\
+                docker buildx bake --file "$app_dir/docker-bake.hcl" --list type=variables,format=json --progress=quiet \
+                    | jq --raw-output '.[] | select(.name == "VERSION") | .value' \
+            )
+            SOURCE=$(\
+                docker buildx bake --file "$app_dir/docker-bake.hcl" --list type=variables,format=json --progress=quiet \
+                    | jq --raw-output '.[] | select(.name == "SOURCE") | .value' \
+            )
+            PLATFORMS=$(\
+                docker buildx bake --file "$app_dir/docker-bake.hcl" image-all --print --progress=quiet \
+                    | jq --raw-output '.target."image-all".platforms | join(", ")' \
+            )
+
+            cat > "$app_dir/README.md" << EOF
+          # ${app_name}
+
+          | | |
+          |---|---|
+          | **Version** | \`${VERSION}\` |
+          | **Source** | [${SOURCE}](${SOURCE}) |
+          | **Platforms** | ${PLATFORMS} |
+          | **Image** | \`ghcr.io/${{ github.repository_owner }}/${app_name}\` |
+
+          ## Usage
+
+          \`\`\`bash
+          docker pull ghcr.io/${{ github.repository_owner }}/${app_name}:${VERSION}
+          \`\`\`
+
+          ## Verify attestation
+
+          \`\`\`bash
+          gh attestation verify --repo ${{ github.repository }} oci://ghcr.io/${{ github.repository_owner }}/${app_name}:rolling
+          \`\`\`
+          EOF
+          done
+
+          # Generate root README app table
+          {
+            echo "# Containers"
+            echo ""
+            echo "Container images built and published to GHCR."
+            echo ""
+            echo "## Images"
+            echo ""
+            echo "All images are rootless (UID 65534), multi-arch, scanned daily, and signed with GitHub attestations."
+            echo ""
+            echo "| App | Version | Source | Platforms |"
+            echo "|-----|---------|--------|-----------|"
+
+            for app_dir in apps/*/; do
+              [[ ! -f "$app_dir/docker-bake.hcl" ]] && continue
+              app_name=$(basename "$app_dir")
+
+              VERSION=$(\
+                  docker buildx bake --file "$app_dir/docker-bake.hcl" --list type=variables,format=json --progress=quiet \
+                      | jq --raw-output '.[] | select(.name == "VERSION") | .value' \
+              )
+              SOURCE=$(\
+                  docker buildx bake --file "$app_dir/docker-bake.hcl" --list type=variables,format=json --progress=quiet \
+                      | jq --raw-output '.[] | select(.name == "SOURCE") | .value' \
+              )
+              PLATFORMS=$(\
+                  docker buildx bake --file "$app_dir/docker-bake.hcl" image-all --print --progress=quiet \
+                      | jq --raw-output '.target."image-all".platforms | join(", ")' \
+              )
+
+              echo "| [\`${app_name}\`](apps/${app_name}) | \`${VERSION}\` | [Source](${SOURCE}) | ${PLATFORMS} |"
+            done
+
+            echo ""
+            echo "## Usage"
+            echo ""
+            echo '```bash'
+            echo 'docker pull ghcr.io/${{ github.repository_owner }}/<app>:<tag>'
+            echo '```'
+            echo ""
+            echo "## Adding a new app"
+            echo ""
+            echo "See [CONTRIBUTING.md](CONTRIBUTING.md)."
+          } > README.md
+
+      - name: Commit updated READMEs
+        run: |
+          if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard -- 'apps/*/README.md' README.md)" ]; then
+            echo "READMEs are up to date."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add apps/*/README.md README.md
+            git commit -m "docs: regenerate READMEs"
+            git push
+          fi
