@@ -32,7 +32,7 @@ Copy from `skel/alpine` or `skel/distroless`, replace all `CHANGEME` placeholder
 - Alpine images use `catatonit` as init; distroless images don't need it
 - Persistent data at `/config`
 - Platforms: `linux/amd64` + `linux/arm64`
-- Registry: `ghcr.io/swagner-de/<app-name>`
+- Registry: `ghcr.io/swagner-de/containers/<app-name>`
 - Versions tracked via Renovate annotations in `docker-bake.hcl`
 
 ## Workflows
