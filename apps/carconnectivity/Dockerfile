@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM docker.io/library/python:3.11-slim AS builder
+FROM docker.io/library/python:3.13-slim AS builder
 ARG VERSION
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
@@ -11,7 +11,7 @@ ENV UV_COMPILE_BYTECODE=1 \
 
 WORKDIR /build
 
-RUN uv venv --python /usr/local/bin/python3.11 /opt/venv
+RUN uv venv --python /usr/local/bin/python3.13 /opt/venv
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     VIRTUAL_ENV=/opt/venv uv pip install \
@@ -21,13 +21,13 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     "carconnectivity-plugin-mqtt_homeassistant>=0.6.1" \
     "carconnectivity-plugin-webui>=0.7"
 
-FROM gcr.io/distroless/python3-debian12:nonroot
+FROM gcr.io/distroless/python3-debian13:nonroot
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-COPY --from=builder /opt/venv/lib/python3.11/site-packages /opt/venv/lib/python3.11/site-packages
-ENV PYTHONPATH="/opt/venv/lib/python3.11/site-packages"
+COPY --from=builder /opt/venv/lib/python3.13/site-packages /opt/venv/lib/python3.13/site-packages
+ENV PYTHONPATH="/opt/venv/lib/python3.13/site-packages"
 
 WORKDIR /config
 VOLUME ["/config"]
