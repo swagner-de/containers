@@ -45,9 +45,11 @@
       ignoreTests: false,
     },
     {
-      description: ["Do not auto-merge GitHub Actions updates"],
+      description: ["Auto-merge GitHub Actions updates"],
       matchManagers: ["github-actions"],
-      automerge: false,
+      automerge: true,
+      automergeType: "pr",
+      ignoreTests: false,
     },
   ],
 }
