@@ -13,7 +13,7 @@ All images are rootless (UID 65534), multi-arch, scanned daily, and signed with 
 ## Usage
 
 ```bash
-docker pull ghcr.io/swagner-de/<app>:<tag>
+docker pull ghcr.io/swagner-de/containers/<app>:<tag>
 ```
 
 ## Adding a new app
