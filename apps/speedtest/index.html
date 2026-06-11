@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Speed Test</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #080b10;
+      --surface: #0e1118;
+      --border:  #1c2030;
+      --text:    #d8dde8;
+      --dim:     #4a5068;
+      --dl:      #00d4aa;   /* download — teal */
+      --ul:      #4f8ef7;   /* upload — blue  */
+      --lat:     #f0c040;   /* latency — amber */
+      --danger:  #f0614a;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1.25rem 5rem;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      max-width: 1000px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--dl);
+    }
+
+    .conn-info {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .conn-item { display: flex; flex-direction: column; align-items: flex-end; gap: 0.1rem; }
+    .conn-item-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+      font-family: var(--mono);
+    }
+    .conn-item-value {
+      font-size: 0.78rem;
+      color: var(--text);
+      font-family: var(--mono);
+    }
+
+    /* ── Main layout ── */
+    .main {
+      width: 100%;
+      max-width: 1000px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* ── Hero readout ── */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 2.5rem 1rem 2rem;
+    }
+
+    .hero-phase {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+      height: 1em;
+    }
+
+    .hero-value {
+      font-family: var(--mono);
+      font-size: clamp(4rem, 14vw, 7.5rem);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      transition: color 0.4s;
+      /* scan-line flicker on active */
+    }
+
+    .hero-value.dl  { color: var(--dl); }
+    .hero-value.ul  { color: var(--ul); }
+    .hero-value.lat { color: var(--lat); }
+
+    .hero-unit {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+
+    /* ── Progress track ── */
+    .progress-track {
+      width: 100%;
+      height: 2px;
+      background: var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      position: absolute;
+      left: 0; top: 0; height: 100%;
+      background: var(--dl);
+      transition: width 0.5s ease, background 0.4s;
+      width: 0%;
+    }
+
+    /* scanning shimmer when running */
+    @keyframes scan {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(400%); }
+    }
+
+    .progress-track.running::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; height: 100%;
+      width: 25%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+      animation: scan 1.4s linear infinite;
+    }
+
+    /* ── Metrics row ── */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    @media (max-width: 600px) {
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .metric {
+      background: var(--surface);
+      padding: 1rem 1.1rem 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .metric-label {
+      font-size: 0.6rem;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--dim);
+    }
+
+    .metric-value {
+      font-family: var(--mono);
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text);
+      transition: color 0.3s;
+    }
+
+    .metric.dl  .metric-value { color: var(--dl); }
+    .metric.ul  .metric-value { color: var(--ul); }
+    .metric.lat .metric-value { color: var(--lat); }
+
+    .metric-unit {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Graphs ── */
+    .graphs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .graph-panel {
+      background: var(--surface);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .graph-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .graph-label {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--dim);
+    }
+
+    .graph-live {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .graph-live-unit {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      color: var(--dim);
+      margin-left: 0.2rem;
+    }
+
+    canvas.scope {
+      width: 100%;
+      height: 72px;
+      display: block;
+      border-radius: 2px;
+    }
+
+    /* ── Packet loss bar ── */
+    .loss-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .loss-label {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--dim);
+      white-space: nowrap;
+    }
+
+    .loss-bar-wrap {
+      flex: 1;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .loss-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--dl);
+      transition: width 0.5s ease, background 0.4s;
+      width: 0%;
+    }
+
+    .loss-value {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      min-width: 4.5ch;
+      text-align: right;
+      color: var(--text);
+    }
+
+    /* ── Scores ── */
+    .scores {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .score-panel {
+      background: var(--surface);
+      padding: 1rem 1.1rem 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .score-panel-label {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--dim);
+    }
+
+    .score-badge {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--dim);
+    }
+
+    .score-badge.great   { color: var(--dl); }
+    .score-badge.good    { color: var(--ul); }
+    .score-badge.average { color: var(--lat); }
+    .score-badge.poor    { color: #e07040; }
+    .score-badge.bad     { color: var(--danger); }
+
+    /* ── Actions ── */
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      padding-top: 0.5rem;
+    }
+
+    .btn-run {
+      background: var(--dl);
+      color: #080b10;
+      border: none;
+      border-radius: 3px;
+      padding: 0.7rem 2.5rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .btn-run:hover  { opacity: 0.85; }
+    .btn-run:active { transform: scale(0.97); }
+    .btn-run:disabled { opacity: 0.3; cursor: default; }
+
+    .btn-stop {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      border-radius: 3px;
+      padding: 0.7rem 1.5rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-stop:hover { background: var(--danger); color: #080b10; }
+
+    .target-wrap {
+      position: relative;
+    }
+
+    .target-current {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.7rem 2rem 0.7rem 0.9rem;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.15s;
+      white-space: nowrap;
+    }
+
+    .target-current::after {
+      content: '';
+      position: absolute;
+      right: 0.7rem;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 4px solid transparent;
+      border-top: 5px solid var(--dim);
+      margin-top: 2px;
+    }
+
+    .target-current:hover { border-color: var(--dim); }
+    .target-current.open  { border-color: var(--dl); }
+    .target-current.open::after { border-top-color: var(--dl); }
+
+    .target-menu {
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 0;
+      min-width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    .target-option {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      padding: 0.65rem 0.9rem;
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s;
+      white-space: nowrap;
+    }
+
+    .target-option:hover    { background: var(--border); color: var(--text); }
+    .target-option.selected { color: var(--dl); }
+
+    .hidden { display: none !important; }
+
+    .lang-toggle {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--dim);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.3rem 0.6rem;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .lang-toggle:hover { color: var(--text); border-color: var(--dim); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">// speedtest</div>
+    <div style="display:flex;align-items:center;gap:1.5rem">
+      <div class="conn-info" id="conn-info"></div>
+      <button class="lang-toggle" id="lang-toggle">DE</button>
+    </div>
+  </header>
+
+  <div class="main">
+
+    <!-- Hero readout -->
+    <div class="hero">
+      <div class="hero-phase" id="hero-phase" data-i18n="ready">ready</div>
+      <div class="hero-value" id="hero-value">—</div>
+      <div class="hero-unit" id="hero-unit">mbps</div>
+    </div>
+
+    <!-- Progress track -->
+    <div class="progress-track" id="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+
+    <!-- Metric chips -->
+    <div class="metrics">
+      <div class="metric dl">
+        <div class="metric-label" data-i18n="download">Download</div>
+        <div class="metric-value" id="m-dl">—</div>
+        <div class="metric-unit">Mbps</div>
+      </div>
+      <div class="metric ul">
+        <div class="metric-label" data-i18n="upload">Upload</div>
+        <div class="metric-value" id="m-ul">—</div>
+        <div class="metric-unit">Mbps</div>
+      </div>
+      <div class="metric lat">
+        <div class="metric-label" data-i18n="latency">Latency</div>
+        <div class="metric-value" id="m-lat">—</div>
+        <div class="metric-unit">ms</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label" data-i18n="jitter">Jitter</div>
+        <div class="metric-value" id="m-jitter">—</div>
+        <div class="metric-unit">ms</div>
+      </div>
+    </div>
+
+    <!-- Scope graphs -->
+    <div class="graphs">
+      <div class="graph-panel">
+        <div class="graph-header">
+          <span class="graph-label" style="color:var(--dl)">DL</span>
+          <span><span class="graph-live" id="gl-dl" style="color:var(--dl)">—</span><span class="graph-live-unit">Mbps</span></span>
+        </div>
+        <canvas class="scope" id="scope-dl" width="600" height="144"></canvas>
+      </div>
+      <div class="graph-panel">
+        <div class="graph-header">
+          <span class="graph-label" style="color:var(--ul)">UL</span>
+          <span><span class="graph-live" id="gl-ul" style="color:var(--ul)">—</span><span class="graph-live-unit">Mbps</span></span>
+        </div>
+        <canvas class="scope" id="scope-ul" width="600" height="144"></canvas>
+      </div>
+      <div class="graph-panel">
+        <div class="graph-header">
+          <span class="graph-label" style="color:var(--lat)">RTT</span>
+          <span><span class="graph-live" id="gl-lat" style="color:var(--lat)">—</span><span class="graph-live-unit">ms</span></span>
+        </div>
+        <canvas class="scope" id="scope-lat" width="600" height="144"></canvas>
+      </div>
+    </div>
+
+    <!-- Packet loss -->
+    <div class="loss-panel hidden" id="loss-panel">
+      <span class="loss-label" data-i18n="packetLoss">Packet loss</span>
+      <div class="loss-bar-wrap">
+        <div class="loss-bar-fill" id="loss-bar"></div>
+      </div>
+      <span class="loss-value" id="loss-value">—</span>
+    </div>
+
+    <!-- Use-case scores (post-test) -->
+    <div class="scores hidden" id="scores-section">
+      <div class="score-panel">
+        <div class="score-panel-label" data-i18n="streaming">Streaming</div>
+        <div class="score-badge" id="s-streaming">—</div>
+      </div>
+      <div class="score-panel">
+        <div class="score-panel-label" data-i18n="gaming">Gaming</div>
+        <div class="score-badge" id="s-gaming">—</div>
+      </div>
+      <div class="score-panel">
+        <div class="score-panel-label" data-i18n="videoCalls">Video calls</div>
+        <div class="score-badge" id="s-rtc">—</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <div class="target-wrap">
+        <div class="target-current" id="target-current">Local</div>
+        <div class="target-menu hidden" id="target-menu"></div>
+      </div>
+      <button class="btn-run" id="btn" data-i18n="runTest">Run test</button>
+      <button class="btn-stop hidden" id="btn-stop" data-i18n="stop">Stop</button>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import SpeedTest from './speedtest.js';
+
+    // ── i18n ─────────────────────────────────────────────────────────────────
+    const STRINGS = {
+      en: {
+        ready: 'ready', downloading: 'downloading', uploading: 'uploading',
+        measuringRtt: 'measuring rtt', done: 'done', stopped: 'stopped', error: 'error',
+        download: 'Download', upload: 'Upload', latency: 'Latency', jitter: 'Jitter',
+        packetLoss: 'Packet loss',
+        streaming: 'Streaming', gaming: 'Gaming', videoCalls: 'Video calls',
+        runTest: 'Run test', running: 'Running…', stop: 'Stop', retry: 'Retry',
+        isp: 'ISP', location: 'Location', ip: 'IP',
+      },
+      de: {
+        ready: 'bereit', downloading: 'herunterladen', uploading: 'hochladen',
+        measuringRtt: 'latenz messen', done: 'fertig', stopped: 'gestoppt', error: 'fehler',
+        download: 'Download', upload: 'Upload', latency: 'Latenz', jitter: 'Jitter',
+        packetLoss: 'Paketverlust',
+        streaming: 'Streaming', gaming: 'Gaming', videoCalls: 'Videoanrufe',
+        runTest: 'Test starten', running: 'Läuft…', stop: 'Stopp', retry: 'Wiederholen',
+        isp: 'Anbieter', location: 'Standort', ip: 'IP',
+      },
+    };
+
+    let lang = 'en';
+
+    function t(key) { return STRINGS[lang][key] ?? STRINGS.en[key] ?? key; }
+
+    function applyLang() {
+      document.documentElement.lang = lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        // Don't overwrite dynamic state values (running…, etc.) on btn
+        if (el.id === 'btn' && el.disabled) return;
+        if (el.id === 'hero-phase') return; // managed by engine state
+        el.textContent = t(key);
+      });
+      document.getElementById('lang-toggle').textContent = lang === 'en' ? 'DE' : 'EN';
+    }
+
+    document.getElementById('lang-toggle').addEventListener('click', () => {
+      lang = lang === 'en' ? 'de' : 'en';
+      applyLang();
+    });
+
+    // ── Formatting ───────────────────────────────────────────────────────────
+    const fmtMbps = v => v == null ? '—' : v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.round(v).toString();
+    const fmtMs   = v => v == null ? '—' : v < 10 ? v.toFixed(1) : Math.round(v).toString();
+    const fmtPct  = v => v == null ? '—' : (v * 100).toFixed(1) + '%';
+    const bps2mbps = v => v / 1e6;
+
+    // ── Hero ─────────────────────────────────────────────────────────────────
+    const heroValue = document.getElementById('hero-value');
+    const heroUnit  = document.getElementById('hero-unit');
+    const heroPhase = document.getElementById('hero-phase');
+
+    function setHero(val, unit, phase, colorClass) {
+      heroValue.textContent = unit === 'ms' ? fmtMs(val) : fmtMbps(val);
+      heroUnit.textContent  = unit;
+      heroPhase.textContent = phase;
+      heroValue.className   = 'hero-value ' + (colorClass || '');
+    }
+
+    function resetHero() {
+      heroValue.textContent = '—';
+      heroUnit.textContent  = 'mbps';
+      heroPhase.textContent = t('ready');
+      heroValue.className   = 'hero-value';
+    }
+
+    // ── Progress ─────────────────────────────────────────────────────────────
+    const progressTrack = document.getElementById('progress-track');
+    const progressFill  = document.getElementById('progress-fill');
+    const PHASES = ['latency', 'download', 'upload', 'packetLoss'];
+
+    function setProgress(type, color) {
+      const idx = PHASES.indexOf(type);
+      if (idx < 0) return;
+      progressFill.style.width      = (((idx + 0.5) / PHASES.length) * 100) + '%';
+      progressFill.style.background = color || 'var(--dl)';
+    }
+
+    // ── Scope graphs ─────────────────────────────────────────────────────────
+    // Each channel keeps a fixed-length window of smoothed values.
+    const WINDOW = 80;   // points visible at once
+    const EMA_α  = 0.25; // smoothing — lower = smoother
+
+    const channels = {
+      dl:  { raw: [], smooth: [], ema: null, color: '#00d4aa', canvasId: 'scope-dl',  liveId: 'gl-dl' },
+      ul:  { raw: [], smooth: [], ema: null, color: '#4f8ef7', canvasId: 'scope-ul',  liveId: 'gl-ul' },
+      lat: { raw: [], smooth: [], ema: null, color: '#f0c040', canvasId: 'scope-lat', liveId: 'gl-lat' },
+    };
+
+    function pushChannel(key, val, fmt) {
+      if (val == null || !isFinite(val)) return;
+      const ch = channels[key];
+      // EMA smoothing
+      ch.ema = ch.ema == null ? val : ch.ema + EMA_α * (val - ch.ema);
+      ch.smooth.push(ch.ema);
+      if (ch.smooth.length > WINDOW) ch.smooth.shift();
+      document.getElementById(ch.liveId).textContent = fmt(ch.ema);
+      drawScope(ch);
+    }
+
+    function drawScope(ch) {
+      const canvas = document.getElementById(ch.canvasId);
+      if (!canvas) return;
+      const W = canvas.width, H = canvas.height;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, W, H);
+
+      // Dot grid background
+      ctx.fillStyle = ch.color + '18';
+      const GRID = 40;
+      for (let x = 0; x < W; x += GRID)
+        for (let y = 0; y < H; y += GRID) {
+          ctx.beginPath();
+          ctx.arc(x, y, 1, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+      const pts = ch.smooth;
+      if (pts.length < 2) return;
+
+      const max   = Math.max(...pts) * 1.15 || 1;
+      const toX   = i => (i / (WINDOW - 1)) * W;
+      const toY   = v => H - (v / max) * (H - 8) - 4;
+
+      // Filled area under curve
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, ch.color + '40');
+      grad.addColorStop(1, ch.color + '00');
+
+      ctx.beginPath();
+      ctx.moveTo(toX(0), H);
+      pts.forEach((v, i) => {
+        const x = toX(i), y = toY(v);
+        if (i === 0) { ctx.lineTo(x, y); return; }
+        // smooth cubic bezier
+        const px = toX(i - 1), py = toY(pts[i - 1]);
+        const cpx = (px + x) / 2;
+        ctx.bezierCurveTo(cpx, py, cpx, y, x, y);
+      });
+      ctx.lineTo(toX(pts.length - 1), H);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Stroke line
+      ctx.beginPath();
+      pts.forEach((v, i) => {
+        const x = toX(i), y = toY(v);
+        if (i === 0) { ctx.moveTo(x, y); return; }
+        const px = toX(i - 1), py = toY(pts[i - 1]);
+        const cpx = (px + x) / 2;
+        ctx.bezierCurveTo(cpx, py, cpx, y, x, y);
+      });
+      ctx.strokeStyle = ch.color;
+      ctx.lineWidth = 2;
+      ctx.lineJoin  = 'round';
+      ctx.stroke();
+
+      // Live dot at end
+      const lx = toX(pts.length - 1), ly = toY(pts[pts.length - 1]);
+      ctx.beginPath();
+      ctx.arc(lx, ly, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = ch.color;
+      ctx.fill();
+    }
+
+    function resetChannels() {
+      for (const key of Object.keys(channels)) {
+        const ch = channels[key];
+        ch.smooth = [];
+        ch.ema    = null;
+        document.getElementById(ch.liveId).textContent = '—';
+        const canvas = document.getElementById(ch.canvasId);
+        if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    // ── Packet loss ───────────────────────────────────────────────────────────
+    function setLoss(ratio) {
+      const pct   = ratio * 100;
+      const color = pct < 0.5 ? 'var(--dl)' : pct < 2 ? 'var(--lat)' : 'var(--danger)';
+      document.getElementById('loss-value').textContent = fmtPct(ratio);
+      document.getElementById('loss-value').style.color = color;
+      const barW  = Math.min(pct * 10, 100);  // scale: 10% loss = full bar
+      document.getElementById('loss-bar').style.width      = barW + '%';
+      document.getElementById('loss-bar').style.background = color;
+    }
+
+    // ── Scores ────────────────────────────────────────────────────────────────
+    const SCORE_LABELS = ['bad','poor','average','good','great'];
+    function applyScore(id, score) {
+      if (!score) return;
+      const el  = document.getElementById(id);
+      const cls = SCORE_LABELS[score.classificationIdx] ?? 'average';
+      el.textContent = cls;
+      el.className   = 'score-badge ' + cls;
+    }
+
+    // ── Connection info ────────────────────────────────────────────────────────
+    async function loadConnInfo() {
+      try {
+        const res = await fetch('https://speed.cloudflare.com/meta');
+        if (!res.ok) return;
+        const d = await res.json();
+        const items = [
+          ['isp',      d.isp],
+          ['location', d.city && d.country ? `${d.city}, ${d.country}` : d.country],
+          ['ip',       d.clientIp],
+        ].filter(([, v]) => v);
+        document.getElementById('conn-info').innerHTML = items.map(([k, v]) =>
+          `<div class="conn-item"><div class="conn-item-label">${t(k)}</div><div class="conn-item-value">${v}</div></div>`
+        ).join('');
+      } catch {}
+    }
+    loadConnInfo();
+
+    // ── Config / target selector ──────────────────────────────────────────
+    const MEASUREMENTS = [
+      { type: 'latency',  numPackets: 1 },
+      { type: 'download', bytes: 1e5, count: 1, bypassMinDuration: true },
+      { type: 'latency',  numPackets: 20 },
+      { type: 'download', bytes: 1e5, count: 9 },
+      { type: 'download', bytes: 1e6, count: 8 },
+      { type: 'upload',   bytes: 1e5, count: 8 },
+      { type: 'upload',   bytes: 1e6, count: 6 },
+      { type: 'download', bytes: 1e7, count: 6 },
+      { type: 'upload',   bytes: 1e7, count: 4 },
+      { type: 'download', bytes: 2.5e7, count: 4 },
+      { type: 'upload',   bytes: 2.5e7, count: 4 },
+      { type: 'download', bytes: 1e8, count: 3 },
+      { type: 'upload',   bytes: 5e7, count: 3 },
+      { type: 'download', bytes: 2.5e8, count: 2 },
+    ];
+
+    let targets = [{ name: 'Local', downloadApiUrl: '/__down', uploadApiUrl: '/__up' }];
+    let activeTarget = targets[0];
+
+    const currentEl = document.getElementById('target-current');
+    const menuEl    = document.getElementById('target-menu');
+
+    function populateSelect() {
+      menuEl.innerHTML = targets.map((tgt, i) =>
+        `<div class="target-option${i === 0 ? ' selected' : ''}" data-idx="${i}">${tgt.name}</div>`
+      ).join('');
+      currentEl.textContent = targets[0].name;
+    }
+
+    currentEl.addEventListener('click', () => {
+      const open = !menuEl.classList.contains('hidden');
+      menuEl.classList.toggle('hidden', open);
+      currentEl.classList.toggle('open', !open);
+    });
+
+    menuEl.addEventListener('click', e => {
+      const opt = e.target.closest('.target-option');
+      if (!opt) return;
+      const idx = parseInt(opt.dataset.idx);
+      activeTarget = targets[idx] ?? targets[0];
+      currentEl.textContent = activeTarget.name;
+      menuEl.querySelectorAll('.target-option').forEach((el, i) =>
+        el.classList.toggle('selected', i === idx)
+      );
+      menuEl.classList.add('hidden');
+      currentEl.classList.remove('open');
+    });
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.target-wrap')) {
+        menuEl.classList.add('hidden');
+        currentEl.classList.remove('open');
+      }
+    });
+
+    async function loadConfig() {
+      try {
+        const res = await fetch('/config.json');
+        if (!res.ok) return;
+        const cfg = await res.json();
+        if (Array.isArray(cfg.targets) && cfg.targets.length) {
+          targets = cfg.targets;
+          activeTarget = targets[0];
+        }
+      } catch {}
+      populateSelect();
+    }
+
+    await loadConfig();
+
+    // ── Engine
+    const btn     = document.getElementById('btn');
+    const btnStop = document.getElementById('btn-stop');
+
+    let engine;
+
+    function makeEngine() {
+      engine = new SpeedTest({
+        autoStart: false,
+        downloadApiUrl: activeTarget.downloadApiUrl,
+        uploadApiUrl:   activeTarget.uploadApiUrl,
+        measurements: MEASUREMENTS,
+      });
+
+      engine.onRunningChange = running => {
+        progressTrack.classList.toggle('running', running);
+        btn.disabled = running;
+        btn.textContent = running ? t('running') : t('runTest');
+        btnStop.classList.toggle('hidden', !running);
+      };
+
+      engine.onResultsChange = ({ type }) => {
+        const r = engine.results;
+
+        if (type === 'download') {
+          const pts = r.getDownloadBandwidthPoints();
+          if (pts.length) {
+            const latest = bps2mbps(pts[pts.length - 1].bps);
+            pushChannel('dl', latest, fmtMbps);
+            setHero(channels.dl.ema, 'mbps', t('downloading'), 'dl');
+            setProgress(type, 'var(--dl)');
+          }
+          const bw = r.getDownloadBandwidth();
+          if (bw != null) document.getElementById('m-dl').textContent = fmtMbps(bps2mbps(bw));
+        }
+
+        if (type === 'upload') {
+          const pts = r.getUploadBandwidthPoints();
+          if (pts.length) {
+            const latest = bps2mbps(pts[pts.length - 1].bps);
+            pushChannel('ul', latest, fmtMbps);
+            setHero(channels.ul.ema, 'mbps', t('uploading'), 'ul');
+            setProgress(type, 'var(--ul)');
+          }
+          const bw = r.getUploadBandwidth();
+          if (bw != null) document.getElementById('m-ul').textContent = fmtMbps(bps2mbps(bw));
+        }
+
+        if (type === 'latency') {
+          const pts = r.getUnloadedLatencyPoints();
+          if (pts.length) {
+            const latest = pts[pts.length - 1];
+            pushChannel('lat', latest, fmtMs);
+            setHero(channels.lat.ema, 'ms', t('measuringRtt'), 'lat');
+            setProgress(type, 'var(--lat)');
+          }
+          const lat = r.getUnloadedLatency();
+          const jit = r.getUnloadedJitter();
+          if (lat != null) document.getElementById('m-lat').textContent    = fmtMs(lat);
+          if (jit != null) document.getElementById('m-jitter').textContent = fmtMs(jit);
+        }
+
+        if (type === 'packetLoss') {
+          setProgress(type, 'var(--dl)');
+          const loss = r.getPacketLoss();
+          if (loss != null) setLoss(loss);
+        }
+      };
+
+      engine.onFinish = results => {
+        const summary = results.getSummary();
+        const scores  = results.getScores();
+
+        if (summary.download != null) {
+          const mbps = bps2mbps(summary.download);
+          document.getElementById('m-dl').textContent  = fmtMbps(mbps);
+          document.getElementById('gl-dl').textContent = fmtMbps(mbps);
+          setHero(mbps, 'mbps', t('done'), 'dl');
+        }
+        if (summary.upload != null) {
+          const mbps = bps2mbps(summary.upload);
+          document.getElementById('m-ul').textContent  = fmtMbps(mbps);
+          document.getElementById('gl-ul').textContent = fmtMbps(mbps);
+        }
+        if (summary.latency != null) {
+          document.getElementById('m-lat').textContent    = fmtMs(summary.latency);
+          document.getElementById('gl-lat').textContent   = fmtMs(summary.latency);
+        }
+        if (summary.jitter != null)
+          document.getElementById('m-jitter').textContent = fmtMs(summary.jitter);
+        if (summary.packetLoss != null)
+          setLoss(summary.packetLoss);
+
+        progressFill.style.width = '100%';
+        progressTrack.classList.remove('running');
+
+        if (scores) {
+          applyScore('s-streaming', scores.streaming);
+          applyScore('s-gaming',    scores.gaming);
+          applyScore('s-rtc',       scores.rtc);
+          document.getElementById('scores-section').classList.remove('hidden');
+        }
+      };
+
+      engine.onError = err => {
+        heroPhase.textContent = t('error');
+        progressTrack.classList.remove('running');
+        btn.disabled = false;
+        btn.textContent = t('retry');
+        btnStop.classList.add('hidden');
+        console.error('SpeedTest error:', err);
+      };
+    }
+
+    makeEngine();
+
+    btn.addEventListener('click', () => {
+      resetHero();
+      resetChannels();
+      progressFill.style.width = '0%';
+      document.getElementById('scores-section').classList.add('hidden');
+      document.getElementById('loss-value').textContent = '—';
+      document.getElementById('loss-value').style.color = '';
+      document.getElementById('loss-bar').style.width   = '0%';
+      ['m-dl','m-ul','m-lat','m-jitter'].forEach(id => {
+        document.getElementById(id).textContent = '—';
+      });
+      makeEngine();
+      engine.play();
+    });
+
+    btnStop.addEventListener('click', () => {
+      engine.pause();
+      progressTrack.classList.remove('running');
+      heroPhase.textContent = t('stopped');
+      btn.disabled    = false;
+      btn.textContent = t('runTest');
+      btnStop.classList.add('hidden');
+    });
+  </script>
+</body>
+</html>
