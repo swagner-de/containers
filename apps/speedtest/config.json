@@ -1,0 +1,14 @@
+{
+  "targets": [
+    {
+      "name": "Local",
+      "downloadApiUrl": "/__down",
+      "uploadApiUrl": "/__up"
+    },
+    {
+      "name": "Cloudflare",
+      "downloadApiUrl": "https://speed.cloudflare.com/__down",
+      "uploadApiUrl": "https://speed.cloudflare.com/__up"
+    }
+  ]
+}
