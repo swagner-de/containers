@@ -30,10 +30,7 @@ jobs:
             [[ ! -f "$app_dir/docker-bake.hcl" ]] && continue
             app_name=$(basename "$app_dir")
 
-            VERSION=$(\
-                docker buildx bake --file "$app_dir/docker-bake.hcl" --list type=variables,format=json --progress=quiet \
-                    | jq --raw-output '.[] | select(.name == "VERSION") | .value' \
-            )
+            VERSION=$(./.github/scripts/app-version.sh "$app_dir")
             SOURCE=$(\
                 docker buildx bake --file "$app_dir/docker-bake.hcl" --list type=variables,format=json --progress=quiet \
                     | jq --raw-output '.[] | select(.name == "SOURCE") | .value' \

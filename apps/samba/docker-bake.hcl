@@ -5,8 +5,7 @@ variable "APP" {
 }
 
 variable "VERSION" {
-  // renovate: datasource=repology depName=alpine_3_23/samba versioning=loose
-  default = "4.22.10-r0"
+  default = ""
 }
 
 variable "SOURCE" {

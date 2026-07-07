@@ -24,20 +24,17 @@ runs:
     - name: App Options
       id: options
       shell: bash
-      working-directory: ./apps/${{ inputs.app }}
       run: |-
+        APP_DIR="./apps/${{ inputs.app }}"
         PLATFORMS=$(\
-            docker buildx bake image-all --print --progress=quiet \
+            docker buildx bake --file "${APP_DIR}/docker-bake.hcl" image-all --print --progress=quiet \
                 | jq --raw-output --compact-output '.target."image-all".platforms' \
         )
         SOURCE=$(\
-            docker buildx bake --list type=variables,format=json --progress=quiet \
+            docker buildx bake --file "${APP_DIR}/docker-bake.hcl" --list type=variables,format=json --progress=quiet \
                 | jq --raw-output '.[] | select(.name == "SOURCE") | .value' \
         )
-        VERSION=$(\
-            docker buildx bake --list type=variables,format=json --progress=quiet \
-                | jq --raw-output '.[] | select(.name == "VERSION") | .value' \
-        )
+        VERSION=$(./.github/scripts/app-version.sh "${APP_DIR}")
 
         echo "platforms=${PLATFORMS}" >> $GITHUB_OUTPUT
         echo "source=${SOURCE}" >> $GITHUB_OUTPUT

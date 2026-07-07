@@ -47,9 +47,12 @@ Copy from `skel/alpine` or `skel/distroless`, replace all `CHANGEME` placeholder
 
 ```bash
 cd apps/<name>
+VERSION=$(../../.github/scripts/app-version.sh .)
 docker buildx bake image-local
-TEST_IMAGE="<name>:<version>" go test -v ./...
+TEST_IMAGE="<name>:${VERSION}" go test -v ./...
 ```
+
+`app-version.sh` resolves an app's `VERSION` — bake's default when set, otherwise the output of the app's `resolve-version.sh` (used for apps whose version tracks a base-image package; see CONTRIBUTING.md).
 
 ## Commit Style
 
