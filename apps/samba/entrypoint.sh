@@ -3,7 +3,8 @@ set -eu
 
 # Create users from /config/users.conf (format: username:uid:gid:group)
 if [ -f /config/users.conf ]; then
-    while IFS=: read -r name uid gid group; do
+    # `|| [ -n "$name" ]` picks up the last line when it has no trailing newline
+    while IFS=: read -r name uid gid group || [ -n "$name" ]; do
         [ -z "$name" ] && continue
         addgroup -g "$gid" "$group" 2>/dev/null || true
         adduser -D -H -u "$uid" -G "$group" -s /sbin/nologin "$name" 2>/dev/null || true
