@@ -10,9 +10,9 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends build-essential ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 ADD https://downloads.es.net/pub/iperf/iperf-${VERSION}.tar.gz /build/
-RUN tar xzf iperf-${VERSION}.tar.gz && \
-    cd iperf-${VERSION} && \
-    ./configure --disable-shared --without-openssl && \
+RUN tar xzf iperf-${VERSION}.tar.gz
+WORKDIR /build/iperf-${VERSION}
+RUN ./configure --disable-shared --without-openssl && \
     make -j"$(nproc)" && \
     strip src/iperf3 && \
     cp src/iperf3 /iperf3
