@@ -108,24 +108,49 @@
       height: 1em;
     }
 
+    .hero-panes {
+      display: flex;
+      width: 100%;
+      gap: 1rem;
+    }
+
+    .hero-pane {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      transition: opacity 0.4s;
+    }
+    .hero-pane.idle { opacity: 0.4; }
+
+    .hero-pane-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .hero-pane.dl .hero-pane-label { color: var(--dl); }
+    .hero-pane.ul .hero-pane-label { color: var(--ul); }
+
     .hero-value {
       font-family: var(--mono);
-      font-size: clamp(4rem, 14vw, 7.5rem);
+      font-size: clamp(2.5rem, 9vw, 5rem);
       font-weight: 700;
       line-height: 1;
       letter-spacing: -0.03em;
       color: var(--text);
       transition: color 0.4s;
-      /* scan-line flicker on active */
     }
 
     .hero-value.dl  { color: var(--dl); }
     .hero-value.ul  { color: var(--ul); }
-    .hero-value.lat { color: var(--lat); }
 
     .hero-unit {
       font-family: var(--mono);
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       letter-spacing: 0.15em;
       color: var(--dim);
       text-transform: uppercase;
@@ -214,6 +239,16 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
+
+    .metric-sub {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .metric.dl .metric-sub span:last-child { color: var(--dl); }
+    .metric.ul .metric-sub span:last-child { color: var(--ul); }
 
     /* ── Graphs ── */
     .graphs {
@@ -355,6 +390,53 @@
     .score-badge.poor    { color: #e07040; }
     .score-badge.bad     { color: var(--danger); }
 
+    /* ── Detailed stats ── */
+    .stats-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem 1.1rem;
+    }
+    .stats-title {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--dim);
+      margin-bottom: 0.7rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.45rem 1.5rem;
+    }
+    @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr; } }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.35rem;
+    }
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--dim);
+    }
+    .stat-val {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .stat-val.great { color: var(--dl); }
+    .stat-val.good  { color: var(--lat); }
+    .stat-val.bad   { color: var(--danger); }
+
     /* ── Actions ── */
     .actions {
       display: flex;
@@ -494,8 +576,18 @@
     <!-- Hero readout -->
     <div class="hero">
       <div class="hero-phase" id="hero-phase" data-i18n="ready">ready</div>
-      <div class="hero-value" id="hero-value">—</div>
-      <div class="hero-unit" id="hero-unit">mbps</div>
+      <div class="hero-panes">
+        <div class="hero-pane dl" id="pane-dl">
+          <div class="hero-pane-label" data-i18n="download">Download</div>
+          <div class="hero-value dl" id="hero-dl">—</div>
+          <div class="hero-unit">Mbps</div>
+        </div>
+        <div class="hero-pane ul" id="pane-ul">
+          <div class="hero-pane-label" data-i18n="upload">Upload</div>
+          <div class="hero-value ul" id="hero-ul">—</div>
+          <div class="hero-unit">Mbps</div>
+        </div>
+      </div>
     </div>
 
     <!-- Progress track -->
@@ -508,12 +600,14 @@
       <div class="metric dl">
         <div class="metric-label" data-i18n="download">Download</div>
         <div class="metric-value" id="m-dl">—</div>
-        <div class="metric-unit">Mbps</div>
+        <div class="metric-unit">Mbps <span data-i18n="avg">avg</span></div>
+        <div class="metric-sub"><span data-i18n="min">min</span> <span id="m-dl-min">—</span> · <span data-i18n="peak">peak</span> <span id="m-dl-peak">—</span></div>
       </div>
       <div class="metric ul">
         <div class="metric-label" data-i18n="upload">Upload</div>
         <div class="metric-value" id="m-ul">—</div>
-        <div class="metric-unit">Mbps</div>
+        <div class="metric-unit">Mbps <span data-i18n="avg">avg</span></div>
+        <div class="metric-sub"><span data-i18n="min">min</span> <span id="m-ul-min">—</span> · <span data-i18n="peak">peak</span> <span id="m-ul-peak">—</span></div>
       </div>
       <div class="metric lat">
         <div class="metric-label" data-i18n="latency">Latency</div>
@@ -577,6 +671,19 @@
       </div>
     </div>
 
+    <!-- Detailed stats (post-test) -->
+    <div class="stats-panel hidden" id="stats-section">
+      <div class="stats-title" data-i18n="detailedStats">Detailed stats</div>
+      <div class="stats-grid">
+        <div class="stat-row"><span class="stat-label" data-i18n="bufferbloat">Bufferbloat</span><span class="stat-val" id="st-bloat">—</span></div>
+        <div class="stat-row"><span class="stat-label" data-i18n="rttIdle">RTT idle</span><span class="stat-val" id="st-rtt-idle">—</span></div>
+        <div class="stat-row"><span class="stat-label" data-i18n="rttLoaded">RTT loaded ↓ / ↑</span><span class="stat-val" id="st-rtt-loaded">—</span></div>
+        <div class="stat-row"><span class="stat-label" data-i18n="rttPct">RTT p50 / p95</span><span class="stat-val" id="st-rtt-pct">—</span></div>
+        <div class="stat-row"><span class="stat-label" data-i18n="jitterIdle">Jitter idle</span><span class="stat-val" id="st-jit-idle">—</span></div>
+        <div class="stat-row"><span class="stat-label" data-i18n="jitterLoaded">Jitter loaded ↓ / ↑</span><span class="stat-val" id="st-jit-loaded">—</span></div>
+      </div>
+    </div>
+
     <div class="actions">
       <div class="target-wrap">
         <div class="target-current" id="target-current">Local</div>
@@ -601,6 +708,10 @@
         streaming: 'Streaming', gaming: 'Gaming', videoCalls: 'Video calls',
         runTest: 'Run test', running: 'Running…', stop: 'Stop', retry: 'Retry',
         isp: 'ISP', location: 'Location', ip: 'IP',
+        avg: 'avg', peak: 'peak', min: 'min',
+        detailedStats: 'Detailed stats', bufferbloat: 'Bufferbloat',
+        rttIdle: 'RTT idle', rttLoaded: 'RTT loaded ↓ / ↑', rttPct: 'RTT p50 / p95',
+        jitterIdle: 'Jitter idle', jitterLoaded: 'Jitter loaded ↓ / ↑',
       },
       de: {
         ready: 'bereit', downloading: 'herunterladen', uploading: 'hochladen',
@@ -610,6 +721,10 @@
         streaming: 'Streaming', gaming: 'Gaming', videoCalls: 'Videoanrufe',
         runTest: 'Test starten', running: 'Läuft…', stop: 'Stopp', retry: 'Wiederholen',
         isp: 'Anbieter', location: 'Standort', ip: 'IP',
+        avg: 'Ø', peak: 'Spitze', min: 'Min.',
+        detailedStats: 'Detailstatistik', bufferbloat: 'Bufferbloat',
+        rttIdle: 'RTT Leerlauf', rttLoaded: 'RTT unter Last ↓ / ↑', rttPct: 'RTT p50 / p95',
+        jitterIdle: 'Jitter Leerlauf', jitterLoaded: 'Jitter unter Last ↓ / ↑',
       },
     };
 
@@ -640,23 +755,44 @@
     const fmtPct  = v => v == null ? '—' : (v * 100).toFixed(1) + '%';
     const bps2mbps = v => v / 1e6;
 
-    // ── Hero ─────────────────────────────────────────────────────────────────
-    const heroValue = document.getElementById('hero-value');
-    const heroUnit  = document.getElementById('hero-unit');
-    const heroPhase = document.getElementById('hero-phase');
+    // Headline = average throughput (mean of all samples); sub = peak (max).
+    function setStats(key, pts) {
+      if (!pts || !pts.length) return;
+      const vals = pts.map(p => bps2mbps(p.bps));
+      const avg  = vals.reduce((a, b) => a + b, 0) / vals.length;
+      document.getElementById('m-' + key).textContent          = fmtMbps(avg);
+      document.getElementById('m-' + key + '-min').textContent  = fmtMbps(Math.min(...vals));
+      document.getElementById('m-' + key + '-peak').textContent = fmtMbps(Math.max(...vals));
+    }
 
-    function setHero(val, unit, phase, colorClass) {
-      heroValue.textContent = unit === 'ms' ? fmtMs(val) : fmtMbps(val);
-      heroUnit.textContent  = unit;
+    // p-th percentile of a numeric array (nearest-rank).
+    function percentile(arr, p) {
+      if (!arr || !arr.length) return null;
+      const s = [...arr].sort((a, b) => a - b);
+      return s[Math.min(s.length - 1, Math.floor((p / 100) * s.length))];
+    }
+
+    // ── Hero ─────────────────────────────────────────────────────────────────
+    const heroDl    = document.getElementById('hero-dl');
+    const heroUl    = document.getElementById('hero-ul');
+    const heroPhase = document.getElementById('hero-phase');
+    const paneDl    = document.getElementById('pane-dl');
+    const paneUl    = document.getElementById('pane-ul');
+
+    function setHeroDl(val) { heroDl.textContent = fmtMbps(val); }
+    function setHeroUl(val) { heroUl.textContent = fmtMbps(val); }
+
+    // phase text + which pane is currently active ('dl' | 'ul' | null → dim the other)
+    function setPhase(phase, active) {
       heroPhase.textContent = phase;
-      heroValue.className   = 'hero-value ' + (colorClass || '');
+      paneDl.classList.toggle('idle', active === 'ul');
+      paneUl.classList.toggle('idle', active === 'dl');
     }
 
     function resetHero() {
-      heroValue.textContent = '—';
-      heroUnit.textContent  = 'mbps';
-      heroPhase.textContent = t('ready');
-      heroValue.className   = 'hero-value';
+      heroDl.textContent = '—';
+      heroUl.textContent = '—';
+      setPhase(t('ready'), null);
     }
 
     // ── Progress ─────────────────────────────────────────────────────────────
@@ -768,6 +904,8 @@
         const canvas = document.getElementById(ch.canvasId);
         if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
       }
+      for (const id of ['m-dl', 'm-ul', 'm-dl-min', 'm-ul-min', 'm-dl-peak', 'm-ul-peak'])
+        document.getElementById(id).textContent = '—';
     }
 
     // ── Packet loss ───────────────────────────────────────────────────────────
@@ -791,20 +929,59 @@
       el.className   = 'score-badge ' + cls;
     }
 
+    // ── Detailed stats ──────────────────────────────────────────────────────────
+    function statVal(id, text, cls) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className   = 'stat-val' + (cls ? ' ' + cls : '');
+    }
+    const pair = (a, b, fmt) =>
+      `${a == null ? '—' : fmt(a)} / ${b == null ? '—' : fmt(b)}`;
+
+    function renderDetailedStats(results) {
+      const s = results.getSummary();
+
+      // Bufferbloat = how much latency rises under load vs idle.
+      if (s.latency != null && (s.downLoadedLatency != null || s.upLoadedLatency != null)) {
+        const loaded = Math.max(s.downLoadedLatency ?? 0, s.upLoadedLatency ?? 0);
+        const bloat  = Math.max(0, loaded - s.latency);
+        const cls    = bloat < 20 ? 'great' : bloat < 60 ? 'good' : 'bad';
+        statVal('st-bloat', '+' + fmtMs(bloat) + ' ms', cls);
+      }
+
+      statVal('st-rtt-idle',   s.latency == null ? '—' : fmtMs(s.latency) + ' ms');
+      statVal('st-rtt-loaded', pair(s.downLoadedLatency, s.upLoadedLatency, fmtMs) + ' ms');
+
+      const rtt = results.getUnloadedLatencyPoints();
+      statVal('st-rtt-pct', pair(percentile(rtt, 50), percentile(rtt, 95), fmtMs) + ' ms');
+
+      statVal('st-jit-idle',   s.jitter == null ? '—' : fmtMs(s.jitter) + ' ms');
+      statVal('st-jit-loaded', pair(s.downLoadedJitter, s.upLoadedJitter, fmtMs) + ' ms');
+
+      document.getElementById('stats-section').classList.remove('hidden');
+    }
+
     // ── Connection info ────────────────────────────────────────────────────────
     async function loadConnInfo() {
       try {
-        const res = await fetch('https://speed.cloudflare.com/meta');
+        // Served by our own serve.mjs — the real client IP as seen by this
+        // server (X-Forwarded-For behind the reverse proxy). No third party.
+        const res = await fetch('/__meta');
         if (!res.ok) return;
         const d = await res.json();
         const items = [
-          ['isp',      d.isp],
-          ['location', d.city && d.country ? `${d.city}, ${d.country}` : d.country],
-          ['ip',       d.clientIp],
+          ['ip', d.clientIp],
         ].filter(([, v]) => v);
-        document.getElementById('conn-info').innerHTML = items.map(([k, v]) =>
-          `<div class="conn-item"><div class="conn-item-label">${t(k)}</div><div class="conn-item-value">${v}</div></div>`
-        ).join('');
+        // textContent, not innerHTML: the IP originates from a request header
+        // (X-Forwarded-For) and must not be interpreted as markup.
+        const wrap = document.getElementById('conn-info');
+        wrap.replaceChildren(...items.map(([k, v]) => {
+          const item  = document.createElement('div'); item.className  = 'conn-item';
+          const label = document.createElement('div'); label.className = 'conn-item-label'; label.textContent = t(k);
+          const value = document.createElement('div'); value.className = 'conn-item-value'; value.textContent = v;
+          item.append(label, value);
+          return item;
+        }));
       } catch {}
     }
     loadConnInfo();
@@ -910,11 +1087,11 @@
           if (pts.length) {
             const latest = bps2mbps(pts[pts.length - 1].bps);
             pushChannel('dl', latest, fmtMbps);
-            setHero(channels.dl.ema, 'mbps', t('downloading'), 'dl');
+            setHeroDl(channels.dl.ema);
+            setPhase(t('downloading'), 'dl');
             setProgress(type, 'var(--dl)');
+            setStats('dl', pts);
           }
-          const bw = r.getDownloadBandwidth();
-          if (bw != null) document.getElementById('m-dl').textContent = fmtMbps(bps2mbps(bw));
         }
 
         if (type === 'upload') {
@@ -922,11 +1099,11 @@
           if (pts.length) {
             const latest = bps2mbps(pts[pts.length - 1].bps);
             pushChannel('ul', latest, fmtMbps);
-            setHero(channels.ul.ema, 'mbps', t('uploading'), 'ul');
+            setHeroUl(channels.ul.ema);
+            setPhase(t('uploading'), 'ul');
             setProgress(type, 'var(--ul)');
+            setStats('ul', pts);
           }
-          const bw = r.getUploadBandwidth();
-          if (bw != null) document.getElementById('m-ul').textContent = fmtMbps(bps2mbps(bw));
         }
 
         if (type === 'latency') {
@@ -934,7 +1111,7 @@
           if (pts.length) {
             const latest = pts[pts.length - 1];
             pushChannel('lat', latest, fmtMs);
-            setHero(channels.lat.ema, 'ms', t('measuringRtt'), 'lat');
+            setPhase(t('measuringRtt'), null);
             setProgress(type, 'var(--lat)');
           }
           const lat = r.getUnloadedLatency();
@@ -954,17 +1131,20 @@
         const summary = results.getSummary();
         const scores  = results.getScores();
 
+        setStats('dl', results.getDownloadBandwidthPoints());
+        setStats('ul', results.getUploadBandwidthPoints());
+
         if (summary.download != null) {
           const mbps = bps2mbps(summary.download);
-          document.getElementById('m-dl').textContent  = fmtMbps(mbps);
           document.getElementById('gl-dl').textContent = fmtMbps(mbps);
-          setHero(mbps, 'mbps', t('done'), 'dl');
+          setHeroDl(mbps);
         }
         if (summary.upload != null) {
           const mbps = bps2mbps(summary.upload);
-          document.getElementById('m-ul').textContent  = fmtMbps(mbps);
           document.getElementById('gl-ul').textContent = fmtMbps(mbps);
+          setHeroUl(mbps);
         }
+        setPhase(t('done'), null);
         if (summary.latency != null) {
           document.getElementById('m-lat').textContent    = fmtMs(summary.latency);
           document.getElementById('gl-lat').textContent   = fmtMs(summary.latency);
@@ -983,10 +1163,12 @@
           applyScore('s-rtc',       scores.rtc);
           document.getElementById('scores-section').classList.remove('hidden');
         }
+
+        renderDetailedStats(results);
       };
 
       engine.onError = err => {
-        heroPhase.textContent = t('error');
+        setPhase(t('error'), null);
         progressTrack.classList.remove('running');
         btn.disabled = false;
         btn.textContent = t('retry');
@@ -1002,6 +1184,7 @@
       resetChannels();
       progressFill.style.width = '0%';
       document.getElementById('scores-section').classList.add('hidden');
+      document.getElementById('stats-section').classList.add('hidden');
       document.getElementById('loss-value').textContent = '—';
       document.getElementById('loss-value').style.color = '';
       document.getElementById('loss-bar').style.width   = '0%';
@@ -1015,7 +1198,7 @@
     btnStop.addEventListener('click', () => {
       engine.pause();
       progressTrack.classList.remove('running');
-      heroPhase.textContent = t('stopped');
+      setPhase(t('stopped'), null);
       btn.disabled    = false;
       btn.textContent = t('runTest');
       btnStop.classList.add('hidden');
