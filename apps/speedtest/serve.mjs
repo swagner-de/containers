@@ -36,6 +36,20 @@ function handleDown(req, res) {
   res.end(RANDOM_POOL.slice(0, bytes));
 }
 
+function handleMeta(req, res) {
+  // Behind a reverse proxy the socket peer is the proxy; the real client is in
+  // X-Forwarded-For (first hop). Strip any IPv4-mapped IPv6 prefix.
+  const xff = req.headers['x-forwarded-for'];
+  const ip = (xff ? xff.split(',')[0].trim() : req.socket.remoteAddress || '')
+    .replace(/^::ffff:/, '');
+  res.writeHead(200, {
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-store',
+    'Access-Control-Allow-Origin': '*',
+  });
+  res.end(JSON.stringify({ clientIp: ip }));
+}
+
 function handleUp(req, res) {
   const start = Date.now();
   req.resume();
@@ -60,6 +74,7 @@ createServer(async (req, res) => {
 
   if (pathname === '/__down' && req.method === 'GET')  { handleDown(req, res); return; }
   if (pathname === '/__up'   && req.method === 'POST') { handleUp(req, res);   return; }
+  if (pathname === '/__meta' && req.method === 'GET')  { handleMeta(req, res); return; }
 
   // config.json is served from the mount path, not from public/
   if (pathname === '/config.json') {
