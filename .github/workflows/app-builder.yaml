@@ -44,6 +44,11 @@ jobs:
         with:
           upstream-version: ${{ steps.app-options.outputs.version }}
 
+      - name: Short SHA
+        id: sha
+        shell: bash
+        run: echo "short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
       - name: Build App Metadata
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         id: meta
@@ -58,6 +63,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.app-versions.outputs.semantic }},enable=${{ steps.app-versions.outputs.is-valid-semver && inputs.release }}
             type=semver,pattern={{major}},value=${{ steps.app-versions.outputs.semantic }},enable=${{ steps.app-versions.outputs.is-valid-semver && inputs.release }}
             type=raw,value=${{ steps.app-versions.outputs.raw }},enable=${{ steps.app-versions.outputs.is-valid-semver && inputs.release }}
+            type=raw,value=${{ steps.app-versions.outputs.semantic }}-g${{ steps.sha.outputs.short }},enable=${{ inputs.release }}
             type=raw,value=rolling,enable=${{ inputs.release }}
             type=raw,value=sandbox,enable=${{ ! inputs.release }}
 
