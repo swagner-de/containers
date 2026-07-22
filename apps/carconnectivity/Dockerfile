@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM docker.io/library/python:3.13-slim AS builder
+FROM docker.io/library/python:3.14-slim AS builder
 ARG VERSION
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
