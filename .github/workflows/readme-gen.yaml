@@ -39,10 +39,16 @@ jobs:
                 docker buildx bake --file "$app_dir/docker-bake.hcl" image-all --print --progress=quiet \
                     | jq --raw-output '.target."image-all".platforms | join(", ")' \
             )
+            DESCRIPTION=$(\
+                docker buildx bake --file "$app_dir/docker-bake.hcl" --list type=variables,format=json --progress=quiet \
+                    | jq --raw-output '.[] | select(.name == "DESCRIPTION") | .value' \
+            )
+            DESC_BLOCK=""
+            [ -n "$DESCRIPTION" ] && DESC_BLOCK=$'\n'"${DESCRIPTION}"$'\n'
 
             cat > "$app_dir/README.md" << EOF
           # ${app_name}
-
+          ${DESC_BLOCK}
           | | |
           |---|---|
           | **Version** | \`${VERSION}\` |
