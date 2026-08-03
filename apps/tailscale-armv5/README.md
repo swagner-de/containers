@@ -4,7 +4,7 @@ Purpose-built Tailscale image for 32-bit **ARMv5** MikroTik routers (hEX-class).
 
 | | |
 |---|---|
-| **Version** | `1.98.10` |
+| **Version** | `1.102.1` |
 | **Source** | [https://github.com/tailscale/tailscale](https://github.com/tailscale/tailscale) |
 | **Platforms** | linux/arm/v5 |
 | **Image** | `ghcr.io/swagner-de/containers/tailscale-armv5` |
@@ -12,7 +12,7 @@ Purpose-built Tailscale image for 32-bit **ARMv5** MikroTik routers (hEX-class).
 ## Usage
 
 ```bash
-docker pull ghcr.io/swagner-de/containers/tailscale-armv5:1.98.10
+docker pull ghcr.io/swagner-de/containers/tailscale-armv5:1.102.1
 ```
 
 ## Verify attestation
