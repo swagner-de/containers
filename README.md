@@ -12,7 +12,7 @@ All images are rootless (UID 65534), multi-arch, scanned daily, and signed with 
 | [`iperf3`](apps/iperf3) | `3.21` | [Source](https://github.com/esnet/iperf) | linux/amd64, linux/arm64 |
 | [`samba`](apps/samba) | `4.23.8-r0` | [Source](https://github.com/swagner-de/containers) | linux/amd64, linux/arm64 |
 | [`speedtest`](apps/speedtest) | `1.13.0` | [Source](https://github.com/cloudflare/speedtest) | linux/amd64, linux/arm64 |
-| [`tailscale-armv5`](apps/tailscale-armv5) | `1.102.1` | [Source](https://github.com/tailscale/tailscale) | linux/arm/v5 |
+| [`tailscale-armv5`](apps/tailscale-armv5) | `1.102.2` | [Source](https://github.com/tailscale/tailscale) | linux/arm/v5 |
 
 ## Usage
 
