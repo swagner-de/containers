@@ -19,6 +19,9 @@ on:
         required: false
         default: false
 
+permissions:
+  contents: read
+
 jobs:
   prepare:
     name: Prepare

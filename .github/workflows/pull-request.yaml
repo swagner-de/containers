@@ -5,6 +5,9 @@ on:
   merge_group:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   prepare:
     name: Prepare
