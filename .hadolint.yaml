@@ -1,3 +1,4 @@
 ignored:
   - DL3018 # apk pin versions - not practical with Alpine rolling packages
   - DL3008 # apt pin versions - not practical for build-only toolchain packages
+  - DL3066 # non-numeric user/group (nobody:nogroup) is an intentional repo convention
