@@ -25,6 +25,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
 
       - name: Check For Existing App
         uses: ./.github/actions/app-exists
@@ -43,6 +44,7 @@ jobs:
         id: app-versions
         with:
           upstream-version: ${{ steps.app-options.outputs.version }}
+          build: ${{ steps.app-options.outputs.build }}
 
       - name: Short SHA
         id: sha
@@ -59,10 +61,11 @@ jobs:
           images: |
             ghcr.io/${{ github.repository }}/${{ inputs.app }}
           tags: |
-            type=semver,pattern={{version}},value=${{ steps.app-versions.outputs.semantic }},enable=${{ steps.app-versions.outputs.is-valid-semver && inputs.release }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ steps.app-versions.outputs.semantic }},enable=${{ steps.app-versions.outputs.is-valid-semver && inputs.release }}
-            type=semver,pattern={{major}},value=${{ steps.app-versions.outputs.semantic }},enable=${{ steps.app-versions.outputs.is-valid-semver && inputs.release }}
-            type=raw,value=${{ steps.app-versions.outputs.raw }},enable=${{ steps.app-versions.outputs.is-valid-semver && inputs.release }}
+            type=semver,pattern={{version}},value=${{ steps.app-versions.outputs.semantic }},enable=${{ steps.app-versions.outputs.is-valid-semver == 'true' && inputs.release && steps.app-versions.outputs.is-first-build == 'true' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.app-versions.outputs.semantic }},enable=${{ steps.app-versions.outputs.is-valid-semver == 'true' && inputs.release && steps.app-versions.outputs.is-first-build == 'true' }}
+            type=semver,pattern={{major}},value=${{ steps.app-versions.outputs.semantic }},enable=${{ steps.app-versions.outputs.is-valid-semver == 'true' && inputs.release && steps.app-versions.outputs.is-first-build == 'true' }}
+            type=raw,value=${{ steps.app-versions.outputs.full }},enable=${{ steps.app-versions.outputs.is-valid-semver == 'true' && inputs.release && (steps.app-versions.outputs.is-first-build == 'true' || steps.app-options.outputs.dynamic == 'true') }}
+            type=raw,value=${{ steps.app-versions.outputs.revision }},enable=${{ steps.app-versions.outputs.is-valid-semver == 'true' && inputs.release }}
             type=raw,value=${{ steps.app-versions.outputs.semantic }}-g${{ steps.sha.outputs.short }},enable=${{ inputs.release }}
             type=raw,value=rolling,enable=${{ inputs.release }}
             type=raw,value=sandbox,enable=${{ ! inputs.release }}
