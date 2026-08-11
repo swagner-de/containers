@@ -6,6 +6,10 @@ inputs:
   upstream-version:
     description: Upstream Version
     required: true
+  build:
+    description: Build revision number
+    required: false
+    default: "0"
 
 outputs:
   is-valid-semver:
@@ -17,9 +21,18 @@ outputs:
   raw:
     description: Raw Version
     value: ${{ steps.versions.outputs.raw }}
+  full:
+    description: Full version including any release suffix (e.g. -rN)
+    value: ${{ steps.versions.outputs.full }}
   upstream:
     description: Upstream Version
     value: ${{ steps.versions.outputs.upstream }}
+  revision:
+    description: Semantic version with build revision suffix (X.Y.Z-bN)
+    value: ${{ steps.versions.outputs.revision }}
+  is-first-build:
+    description: Whether this is the first build of the version (build == 0)
+    value: ${{ steps.versions.outputs.is-first-build }}
 
 runs:
   using: composite
@@ -45,6 +58,7 @@ runs:
       id: versions
       env:
         UPSTREAM_VERSION: ${{ inputs.upstream-version }}
+        BUILD: ${{ inputs.build }}
       with:
         script: |-
           const semver = require('/tmp/node_modules/semver');
@@ -59,6 +73,7 @@ runs:
           }
 
           const upstreamVersion = process.env.UPSTREAM_VERSION;
+          const build = parseInt(process.env.BUILD, 10) || 0;
           const strictSemverRegex = /^v?(\d+(\.\d+)?(\.\d+)?)/;
 
           const parsedVersion = strictSemverRegex.exec(upstreamVersion);
@@ -68,8 +83,16 @@ runs:
               ? `${parsedSemver.major}.${parsedSemver.minor}.${parsedSemver.patch}`
               : calver();
           const rawVersion = isValidSemver ? sanitize(upstreamVersion) : upstreamVersion;
+          // Full version keeps any release suffix (e.g. Alpine's -rN in dynamic
+          // apps like samba: "4.23.8-r0"). This is the immutable-tag key and the
+          // base for the build revision, so an apk-only rebuild (r0 -> r1) with
+          // an unchanged base image produces a new tag instead of overwriting.
+          const fullVersion = upstreamVersion.replace(/^v/, '');
 
           core.setOutput('is-valid-semver', isValidSemver);
           core.setOutput('semantic', semanticVersion);
           core.setOutput('raw', rawVersion);
+          core.setOutput('full', fullVersion);
           core.setOutput('upstream', upstreamVersion);
+          core.setOutput('revision', `${fullVersion}-b${build}`);
+          core.setOutput('is-first-build', build === 0);

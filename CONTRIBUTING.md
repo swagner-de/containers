@@ -81,6 +81,26 @@ For apps whose version is coupled to a base image (e.g. an Alpine package where 
 
 The resulting image tag reflects whatever was installed at build time. Renovate PRs on the base image now build green without needing a coupled package bump.
 
+## Build revisions
+
+Images are tagged `X.Y.Z-bN`, where `N` is a build revision that increments
+automatically each time an app is rebuilt without an upstream version change
+(e.g. a Dockerfile edit or a dependency bump). The bare `X.Y.Z` tag is
+immutable — it is published only on the first build (`-b0`) of a version and is
+never overwritten, so consumers pinned to `X.Y.Z` never silently receive a
+rebuild.
+
+You do **not** manage the revision manually. It is derived from git history by
+`.github/scripts/app-build.sh` (commits touching build-affecting files since the
+version last changed). A version bump resets it to `-b0`; a later dep/Dockerfile
+change produces `-b1`, `-b2`, and so on. Changes to tests or READMEs do not bump
+it.
+
+Dynamic-version apps (those using `resolve-version.sh`, like samba) keep the
+full upstream string — including Alpine's `-rN` package-release suffix — in
+their tags (e.g. `4.23.8-r0-b1`), since that suffix distinguishes apk-only
+rebuilds the git counter cannot see.
+
 ## Testing
 
 Tests use [testcontainers-go](https://golang.testcontainers.org/). Each app has a `container_test.go` that spins up the built image and verifies it works.
