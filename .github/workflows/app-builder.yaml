@@ -67,6 +67,7 @@ jobs:
             type=raw,value=${{ steps.app-versions.outputs.full }},enable=${{ steps.app-versions.outputs.is-valid-semver == 'true' && inputs.release && (steps.app-versions.outputs.is-first-build == 'true' || steps.app-options.outputs.dynamic == 'true') }}
             type=raw,value=${{ steps.app-versions.outputs.revision }},enable=${{ steps.app-versions.outputs.is-valid-semver == 'true' && inputs.release }}
             type=raw,value=${{ steps.app-versions.outputs.semantic }}-g${{ steps.sha.outputs.short }},enable=${{ inputs.release }}
+            type=raw,value=latest,enable=${{ inputs.release }}
             type=raw,value=rolling,enable=${{ inputs.release }}
             type=raw,value=sandbox,enable=${{ ! inputs.release }}
 
