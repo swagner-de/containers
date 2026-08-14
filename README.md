@@ -6,13 +6,13 @@ Container images built and published to GHCR.
 
 All images are rootless (UID 65534), multi-arch, scanned daily, and signed with GitHub attestations.
 
-| App | Version | Source | Platforms |
-|-----|---------|--------|-----------|
-| [`carconnectivity`](apps/carconnectivity) | `0.11.10` | [Source](https://github.com/tillsteinbach/CarConnectivity) | linux/amd64, linux/arm64 |
-| [`iperf3`](apps/iperf3) | `3.21` | [Source](https://github.com/esnet/iperf) | linux/amd64, linux/arm64 |
-| [`samba`](apps/samba) | `4.23.8-r0` | [Source](https://github.com/swagner-de/containers) | linux/amd64, linux/arm64 |
-| [`speedtest`](apps/speedtest) | `1.13.0` | [Source](https://github.com/cloudflare/speedtest) | linux/amd64, linux/arm64 |
-| [`tailscale-armv5`](apps/tailscale-armv5) | `1.102.2` | [Source](https://github.com/tailscale/tailscale) | linux/arm/v5 |
+| App | Version | Revision | Source | Platforms |
+|-----|---------|----------|--------|-----------|
+| [`carconnectivity`](apps/carconnectivity) | `0.11.10` | `0.11.10-b1` | [Source](https://github.com/tillsteinbach/CarConnectivity) | linux/amd64, linux/arm64 |
+| [`iperf3`](apps/iperf3) | `3.21` | `3.21-b1` | [Source](https://github.com/esnet/iperf) | linux/amd64, linux/arm64 |
+| [`samba`](apps/samba) | `4.23.8-r0` | `4.23.8-r0-b1` | [Source](https://github.com/swagner-de/containers) | linux/amd64, linux/arm64 |
+| [`speedtest`](apps/speedtest) | `1.13.0` | `1.13.0-b0` | [Source](https://github.com/cloudflare/speedtest) | linux/amd64, linux/arm64 |
+| [`tailscale-armv5`](apps/tailscale-armv5) | `1.102.2` | `1.102.2-b0` | [Source](https://github.com/tailscale/tailscale) | linux/arm/v5 |
 
 ## Usage
 
