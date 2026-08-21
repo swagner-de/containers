@@ -6,7 +6,7 @@ variable "APP" {
 
 variable "VERSION" {
   // renovate: datasource=github-releases depName=cloudflare/speedtest
-  default = "1.13.0"
+  default = "1.13.1"
 }
 
 variable "SOURCE" {
