@@ -6,7 +6,7 @@ variable "APP" {
 
 variable "VERSION" {
   // renovate: datasource=pypi depName=carconnectivity
-  default = "0.11.10"
+  default = "0.11.11"
 }
 
 variable "SOURCE" {
