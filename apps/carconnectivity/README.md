@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Version** | `0.11.10` |
-| **Revision** | `0.11.10-b1` |
+| **Version** | `0.11.11` |
+| **Revision** | `0.11.11-b0` |
 | **Source** | [https://github.com/tillsteinbach/CarConnectivity](https://github.com/tillsteinbach/CarConnectivity) |
 | **Platforms** | linux/amd64, linux/arm64 |
 | **Image** | `ghcr.io/swagner-de/containers/carconnectivity` |
@@ -11,7 +11,7 @@
 ## Usage
 
 ```bash
-docker pull ghcr.io/swagner-de/containers/carconnectivity:0.11.10-b1
+docker pull ghcr.io/swagner-de/containers/carconnectivity:0.11.11-b0
 ```
 
 ## Verify attestation

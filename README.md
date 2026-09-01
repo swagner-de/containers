@@ -8,7 +8,7 @@ All images are rootless (UID 65534), multi-arch, scanned daily, and signed with 
 
 | App | Version | Revision | Source | Platforms |
 |-----|---------|----------|--------|-----------|
-| [`carconnectivity`](apps/carconnectivity) | `0.11.10` | `0.11.10-b1` | [Source](https://github.com/tillsteinbach/CarConnectivity) | linux/amd64, linux/arm64 |
+| [`carconnectivity`](apps/carconnectivity) | `0.11.11` | `0.11.11-b0` | [Source](https://github.com/tillsteinbach/CarConnectivity) | linux/amd64, linux/arm64 |
 | [`iperf3`](apps/iperf3) | `3.21` | `3.21-b1` | [Source](https://github.com/esnet/iperf) | linux/amd64, linux/arm64 |
 | [`samba`](apps/samba) | `4.23.8-r0` | `4.23.8-r0-b1` | [Source](https://github.com/swagner-de/containers) | linux/amd64, linux/arm64 |
 | [`speedtest`](apps/speedtest) | `1.13.1` | `1.13.1-b0` | [Source](https://github.com/cloudflare/speedtest) | linux/amd64, linux/arm64 |
