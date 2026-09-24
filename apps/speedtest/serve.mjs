@@ -18,22 +18,44 @@ const MIME = {
   '.ico':  'image/x-icon',
 };
 
-// Pre-allocate a 256 MB pool of random bytes; sliced per request.
-const RANDOM_POOL = (() => {
-  const buf = Buffer.allocUnsafe(256 * 1024 * 1024);
+// Max download size a single request may ask for (the client's largest
+// measurement is 250 MB). Bounds the `bytes` param without pre-allocating it.
+const MAX_DOWN_BYTES = 256 * 1024 * 1024;
+
+// A single small reusable chunk of random bytes. Downloads stream this chunk
+// repeatedly rather than holding the whole payload in memory. 64 KiB matches a
+// typical socket write size, giving high throughput with a tiny footprint.
+const CHUNK_SIZE = 64 * 1024;
+const CHUNK = (() => {
+  const buf = Buffer.allocUnsafe(CHUNK_SIZE);
   for (let i = 0; i < buf.length; i += 4) buf.writeUInt32LE((Math.random() * 0xffffffff) >>> 0, i);
   return buf;
 })();
 
 function handleDown(req, res) {
-  const bytes = Math.min(Math.max(parseInt(new URL(req.url, 'http://x').searchParams.get('bytes') || '0'), 0), RANDOM_POOL.length);
+  const bytes = Math.min(Math.max(parseInt(new URL(req.url, 'http://x').searchParams.get('bytes') || '0'), 0), MAX_DOWN_BYTES);
   res.writeHead(200, {
     'Content-Type': 'application/octet-stream',
     'Content-Length': bytes,
     'Cache-Control': 'no-store',
     'Access-Control-Allow-Origin': '*',
   });
-  res.end(RANDOM_POOL.slice(0, bytes));
+
+  let remaining = bytes;
+  const write = () => {
+    while (remaining > 0) {
+      const n = Math.min(remaining, CHUNK_SIZE);
+      const chunk = n === CHUNK_SIZE ? CHUNK : CHUNK.subarray(0, n);
+      remaining -= n;
+      // Honour backpressure: stop writing until the socket drains.
+      if (!res.write(chunk)) {
+        res.once('drain', write);
+        return;
+      }
+    }
+    res.end();
+  };
+  write();
 }
 
 function handleMeta(req, res) {
