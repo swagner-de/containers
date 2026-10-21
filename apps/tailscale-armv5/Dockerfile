@@ -5,7 +5,7 @@
 # instruction) on these CPUs, so we build from source with GOARM=5.
 
 # Cross-compile on the native build host — no armv5 emulation for the Go build.
-FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build-env
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build-env
 ARG VERSION
 RUN apk add --no-cache git upx
 WORKDIR /go/src
