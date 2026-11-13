@@ -6,7 +6,7 @@ variable "APP" {
 
 variable "VERSION" {
   // renovate: datasource=github-releases depName=tailscale/tailscale
-  default = "1.104.6"
+  default = "1.104.7"
 }
 
 variable "SOURCE" {
